@@ -1,19 +1,41 @@
 import TodoForm from "../components/TodoForm";
 import TodoItems from "../components/TodoItems";
 
+import {
+  useGetTodosQuery,
+  useDeleteTodoMutation,
+} from "./../slices/todosApiSlice";
+
 function TodosPage() {
+  const { data: todos, isLoading, isError } = useGetTodosQuery();
+  const [deleteTodo] = useDeleteTodoMutation();
+
+  const handleDeleteTodo = async (id) => {
+    try {
+      await deleteTodo(id).unwrap();
+    } catch (error) {
+      console.error("Failed to delete todo:", error);
+    }
+  };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div>Error loading todos.</div>;
+
   return (
     <div>
       <TodoForm />
       <div className="container mx-auto">
         <div className="grid grid-cols-4 gap-4 mt-6">
-          <TodoItems
-            title="New todo"
-            date="04th December, 2024"
-            description="Lorem ipsum, dolor sit amet consectetur adipisicing elit. Voluptatum accusantium voluptatem molestiae laboriosam iusto, possimus expedita repellat sint fugiat sit sed doloribus quisquam eius? Laboriosam adipisci veniam perspiciatis tenetur odit!"
-            onEdit={() => {}}
-            onDelete={() => {}}
-          />
+          {todos?.map((todo) => (
+            <TodoItems
+              key={todo.id}
+              title={todo.title}
+              date={todo.date}
+              description={todo.description}
+              onEdit={() => console.log(`Edit ${todo.id}`)} // Placeholder
+              onDelete={() => handleDeleteTodo(todo.id)}
+            />
+          ))}
         </div>
       </div>
     </div>
