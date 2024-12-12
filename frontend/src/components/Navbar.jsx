@@ -2,6 +2,9 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaBars, FaTimes } from "react-icons/fa";
 import ProfileInfo from "./ProfileInfo";
+import { useLogoutMutation } from "../slices/usersApiSlice";
+import { logout } from "../slices/authSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 // function Navbar({ isLoggedIn, onLogout }) {
 //   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -91,20 +94,32 @@ import ProfileInfo from "./ProfileInfo";
 
 function Navbar() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const onLogout = () => {
-    navigate("/login");
+  const [logoutApiCall] = useLogoutMutation();
+
+  const onLogout = async () => {
+    try {
+      await logoutApiCall().unwrap();
+      dispatch(logout());
+      navigate("/login");
+    } catch (error) {
+      console.log(error);
+    }
   };
+  const { userInfo } = useSelector((state) => state.auth);
   return (
     <div className="bg-white flex items-center justify-between px-20 py-2">
       <div>
         <h2 className="text-xl font-medium text-violet-950 py-2">MERN TODO</h2>
       </div>
       <div className="flex items-center justify-center gap-4">
-        <Link to="update-profile" className="">
-          Upddate profile
-        </Link>
-        <ProfileInfo onLogout={onLogout} />
+        {userInfo && (
+          <Link to="update-profile" className="">
+            Upddate profile
+          </Link>
+        )}
+        {userInfo && <ProfileInfo onLogout={onLogout} />}
       </div>
     </div>
   );

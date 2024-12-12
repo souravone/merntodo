@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import PasswordInput from "../components/PasswordInput";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { validateEmail, validatePassword } from "../utils/helper";
+import { useSelector, useDispatch } from "react-redux";
+import { useSignupMutation } from "../slices/usersApiSlice";
+import { setCredentials } from "../slices/authSlice";
 
 function SignUpPage() {
   const [name, setName] = useState("");
@@ -10,7 +13,17 @@ function SignUpPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
 
-  const handleSignup = (e) => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const { userInfo } = useSelector((state) => state.auth);
+  const [signup, { isLoading }] = useSignupMutation();
+
+  useEffect(() => {
+    if (userInfo) navigate("/");
+  }, [navigate, userInfo]);
+
+  const handleSignup = async (e) => {
     e.preventDefault();
 
     if (!name) {
@@ -30,6 +43,14 @@ function SignUpPage() {
     }
 
     setError("");
+
+    try {
+      const res = await signup({ name, email, password }).unwrap();
+      dispatch(setCredentials({ ...res }));
+      navigate("/todos");
+    } catch (error) {
+      console.log(error);
+    }
   };
   return (
     <div className="flex items-center justify-center mt-28">
